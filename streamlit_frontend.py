@@ -15,11 +15,13 @@ for message in st.session_state['chat_messages']:
 userinput = st.chat_input('Type Here..')
 
 if userinput:
+
     st.session_state['chat_messages'].append({'role':'user','content':userinput})
     with st.chat_message('user'):
         st.text(userinput)
     
     response = workflow.invoke({'messages':[HumanMessage(content=userinput)]}, config=CONFIG)
-    st.session_state['chat_messages'].append({'role':'assistant','content':response['messages'][-1].content})
+
+    st.session_state['chat_messages'].append({'role':'assistant','content':response['messages'][-1].content[0]['text']})
     with st.chat_message('assistant'):
-        st.text(response['messages'][-1].content)
+        st.text(response['messages'][-1].content[0]['text'])

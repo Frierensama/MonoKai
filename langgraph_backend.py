@@ -17,7 +17,7 @@ llm_endpoint = HuggingFaceEndpoint(
     )
 model = ChatHuggingFace(llm=llm_endpoint)
 
-google_model = ChatGoogleGenerativeAI(model='gemini-3.6-flash')
+google_model = ChatGoogleGenerativeAI(model='gemini-3.1-flash-lite')
 
 class ChatSchema(TypedDict):
     topic:str
