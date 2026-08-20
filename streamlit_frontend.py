@@ -3,6 +3,7 @@ from langgraph_backend import workflow
 from langchain_core.messages import HumanMessage, AIMessage
 
 CONFIG = {'configurable':{'thread_id':'thread-002'}}
+st.set_page_config(page_title='Saturn-X',page_icon='🪐')
 
 if 'chat_messages' not in st.session_state:
     st.session_state['chat_messages'] = []
