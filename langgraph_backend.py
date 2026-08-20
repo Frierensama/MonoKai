@@ -26,8 +26,9 @@ class ChatSchema(TypedDict):
 
 def chat_node(state:ChatSchema):
     messages = state['messages']
-    response = google_model.invoke(messages)
-    return {'messages':[AIMessage(content=response.content)]}
+    response = google_model.invoke(messages) 
+    # response itself is Ai message, so, when i comeback again, dont need to extract content and send as AImessage
+    return {'messages':response}
 
 
 checkpointer = InMemorySaver()
