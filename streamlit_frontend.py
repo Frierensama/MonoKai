@@ -20,8 +20,15 @@ if userinput:
     with st.chat_message('user'):
         st.text(userinput)
     
-    response = workflow.invoke({'messages':[HumanMessage(content=userinput)]}, config=CONFIG)
 
-    st.session_state['chat_messages'].append({'role':'assistant','content':response['messages'][-1].content[0]['text']})
     with st.chat_message('assistant'):
-        st.text(response['messages'][-1].content[0]['text'])
+        response = st.write_stream(
+            message_chunk.content[0]['text'] if message_chunk.content else ""
+            for message_chunk, metadata in workflow.stream(
+                {'messages':[HumanMessage(content=userinput)]},
+                config=CONFIG,
+                stream_mode='messages'
+            )
+        )
+
+    st.session_state['chat_messages'].append({'role':'assistant', 'content':response})
