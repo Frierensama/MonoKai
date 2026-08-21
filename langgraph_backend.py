@@ -32,8 +32,8 @@ def chat_node(state:ChatSchema):
     # response itself is Ai message, so, when i comeback again, dont need to extract content and send as AImessage
     return {'messages':[response]}
 
-
-checkpointer = InMemorySaver()
+conn = sqlite3.connect(database='Akai_db',check_same_thread=False)
+checkpointer = SqliteSaver(conn=conn)
 
 stategraph = StateGraph(state_schema=ChatSchema)
 # nodes
