@@ -39,7 +39,7 @@ if 'chat_messages' not in st.session_state:
 CONFIG = {'configurable':{'thread_id':st.session_state['thread_id']}}
 # ---------------------------- sidebar  -----------------------------------
 
-st.sidebar.title('**ＡＫＡＩ-１.１**',width='content')
+st.sidebar.title('**ＡＫＡＩ－２.９**',width='content')
 
 if st.sidebar.button('New Chat'):
     new_chat()
