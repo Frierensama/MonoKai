@@ -17,8 +17,8 @@ def new_chat():
     st.session_state['chat_messages'] = []
 
 def add_thread_id(thread_id):
-    if thread_id not in st.session_state['chat_threads']:
-        st.session_state['chat_threads'].append(thread_id)
+    if thread_id not in st.session_state['chat_thread_ids']:
+        st.session_state['chat_thread_ids'].append(thread_id)
 
 def load_thread_messages(thread_id):
     return workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages']
@@ -26,7 +26,7 @@ def load_thread_messages(thread_id):
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
     st.session_state['thread_id'] = gen_thread_id()
-    st.session_state['chat_threads'] = [st.session_state['thread_id']]
+    st.session_state['chat_thread_ids'] = [st.session_state['thread_id']]
 
 if 'chat_messages' not in st.session_state:
     st.session_state['chat_messages'] = []
@@ -43,7 +43,7 @@ if st.sidebar.button('New Chat'):
 
 st.sidebar.header('My Chats')
 
-for thread_id in st.session_state['chat_threads']:
+for thread_id in st.session_state['chat_thread_ids']:
     if st.sidebar.button(str(thread_id)):
         st.session_state['thread_id'] = thread_id
         thread_chat_history = load_thread_messages(thread_id)
