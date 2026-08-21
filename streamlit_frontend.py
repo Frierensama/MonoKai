@@ -1,5 +1,5 @@
 import streamlit as st
-from langgraph_backend import workflow
+from langgraph_backend import workflow, get_all_thread_ids
 from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
@@ -17,8 +17,8 @@ def new_chat():
     st.session_state['chat_messages'] = []
 
 def add_thread_id(thread_id):
-    if thread_id not in st.session_state['chat_threads']:
-        st.session_state['chat_threads'].append(thread_id)
+    if thread_id not in st.session_state['chat_thread_ids']:
+        st.session_state['chat_thread_ids'].append(thread_id)
 
 def load_thread_messages(thread_id):
     fetched_messages = workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages'] if 'messages' in workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values else []
@@ -29,12 +29,14 @@ def load_thread_messages(thread_id):
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
     st.session_state['thread_id'] = gen_thread_id()
-    st.session_state['chat_threads'] = [st.session_state['thread_id']]
 
 if 'chat_messages' not in st.session_state:
     st.session_state['chat_messages'] = []
 
+if 'chat_thread_ids' not in st.session_state:
+    st.session_state['chat_thread_ids'] = get_all_thread_ids()
 
+add_thread_id(st.session_state['thread_id'])
 
 CONFIG = {'configurable':{'thread_id':st.session_state['thread_id']}}
 # ---------------------------- sidebar  -----------------------------------
@@ -46,7 +48,7 @@ if st.sidebar.button('New Chat'):
 
 st.sidebar.header('My Chats')
 
-for thread_id in st.session_state['chat_threads'][::-1]:
+for thread_id in st.session_state['chat_thread_ids'][::-1]:
     if st.sidebar.button(thread_id):
 
         st.session_state['thread_id'] = thread_id

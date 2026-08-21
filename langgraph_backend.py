@@ -32,7 +32,7 @@ def chat_node(state:ChatSchema):
     # response itself is Ai message, so, when i comeback again, dont need to extract content and send as AImessage
     return {'messages':[response]}
 
-conn = sqlite3.connect(database='Akai_db',check_same_thread=False)
+conn = sqlite3.connect(database='Akai.db',check_same_thread=False)
 checkpointer = SqliteSaver(conn=conn)
 
 stategraph = StateGraph(state_schema=ChatSchema)
@@ -44,3 +44,11 @@ stategraph.add_edge(START,'chat_node')
 stategraph.add_edge('chat_node',END)
 
 workflow = stategraph.compile(checkpointer=checkpointer)
+
+
+def get_all_thread_ids():
+    thread_ids = set()
+    for checkpoint in checkpointer.list(None):
+        thread_ids.add(checkpoint.config['configurable']['thread_id'])
+
+    return list(thread_ids)
