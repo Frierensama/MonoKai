@@ -8,7 +8,7 @@ st.set_page_config(page_title='Tsuki',page_icon='🍥')
 # --------------------------- utilities  -----------------------------
 def gen_thread_id():
     thread_id = uuid.uuid4()
-    return thread_id
+    return str(thread_id)
 
 def new_chat():
     new_thread_id = gen_thread_id()
@@ -16,9 +16,12 @@ def new_chat():
     st.session_state['thread_id'] = new_thread_id
     st.session_state['chat_messages'] = []
 
-def add_thread_id(thread):
-    if thread not in st.session_state['chat_threads']:
-        st.session_state['chat_threads'].append(thread)
+def add_thread_id(thread_id):
+    if thread_id not in st.session_state['chat_threads']:
+        st.session_state['chat_threads'].append(thread_id)
+
+def load_thread_messages(thread_id):
+    return workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages']
 
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
@@ -40,12 +43,27 @@ if st.sidebar.button('New Chat'):
 
 st.sidebar.header('My Chats')
 
-for chat_thread in st.session_state['chat_threads']:
-    selected_chat_thread = st.sidebar.button(str(chat_thread))
+for thread_id in st.session_state['chat_threads']:
+    if st.sidebar.button(thread_id):
+
+        st.session_state['thread_id'] = thread_id
+        thread_chat_history = load_thread_messages(thread_id)
+
+        temp_chat_history = []
+        for msg in thread_chat_history:
+            if isinstance(msg, HumanMessage):
+                role = 'user'
+            else:
+                role = 'assistant'
+            temp_chat_history.append({'role':role,'content':msg.content if role == 'user' else msg.content[0]['text']})
+
+
+        st.session_state['chat_messages'] = temp_chat_history
+        
 
 # --------------------------- User Interaction ------------------------------------
 
-for message in st.session_state['chat_messages']:
+for message in st.session_state['chat_messages'][::-1]:
     with st.chat_message(message['role']):
         st.text(message['content'])
 
