@@ -52,3 +52,16 @@ def get_all_thread_ids():
         thread_ids.add(checkpoint.config['configurable']['thread_id'])
 
     return list(thread_ids)
+
+def get_title(thread_id)->str:
+
+    state = workflow.get_state(config={'configurable':{'thread_id':thread_id}})
+    first_message_content =  state.values['messages'][0].content if 'messages' in state.values else thread_id
+
+    title = ''
+    if len(first_message_content) < 32:
+        title = first_message_content
+    else:
+        title = first_message_content[:32]
+
+    return title

@@ -1,5 +1,5 @@
 import streamlit as st
-from langgraph_backend import workflow, get_all_thread_ids
+from langgraph_backend import workflow, get_all_thread_ids, get_title
 from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
@@ -49,7 +49,8 @@ if st.sidebar.button('New Chat'):
 st.sidebar.header('My Chats')
 
 for thread_id in st.session_state['chat_thread_ids'][::-1]:
-    if st.sidebar.button(thread_id):
+
+    if st.sidebar.button(label=get_title(thread_id), key=thread_id):
 
         st.session_state['thread_id'] = thread_id
         thread_chat_history = load_thread_messages(thread_id)
