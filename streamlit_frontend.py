@@ -3,7 +3,7 @@ from langgraph_backend import workflow
 from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
-st.set_page_config(page_title='Tsuki',page_icon='🍥')
+st.set_page_config(page_title='𝙰𝚔𝚊𝚒',page_icon='🍥')
 
 # --------------------------- utilities  -----------------------------
 def gen_thread_id():
@@ -21,7 +21,10 @@ def add_thread_id(thread_id):
         st.session_state['chat_threads'].append(thread_id)
 
 def load_thread_messages(thread_id):
-    return workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages']
+    fetched_messages = workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages'] if 'messages' in workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values else []
+
+    # The **IF** is for - when a new chat is created[Thread], for that thread the STATE[messages is still None. When fetched values from STATE, `messages` key doesn't exist. So send [] if empty chat instead of None ]
+    return fetched_messages
 
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
@@ -36,14 +39,14 @@ if 'chat_messages' not in st.session_state:
 CONFIG = {'configurable':{'thread_id':st.session_state['thread_id']}}
 # ---------------------------- sidebar  -----------------------------------
 
-st.sidebar.title('`Clove 1.1`',width='stretch')
+st.sidebar.title('**ＡＫＡＩ-１.１**',width='content')
 
 if st.sidebar.button('New Chat'):
     new_chat()
 
 st.sidebar.header('My Chats')
 
-for thread_id in st.session_state['chat_threads']:
+for thread_id in st.session_state['chat_threads'][::-1]:
     if st.sidebar.button(thread_id):
 
         st.session_state['thread_id'] = thread_id
@@ -63,7 +66,7 @@ for thread_id in st.session_state['chat_threads']:
 
 # --------------------------- User Interaction ------------------------------------
 
-for message in st.session_state['chat_messages'][::-1]:
+for message in st.session_state['chat_messages']:
     with st.chat_message(message['role']):
         st.text(message['content'])
 
