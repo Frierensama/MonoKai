@@ -21,10 +21,20 @@ def add_thread_id(thread_id):
         st.session_state['chat_thread_ids'].append(thread_id)
 
 def load_thread_messages(thread_id):
-    fetched_messages = workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages'] if 'messages' in workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values else []
-
+    thread_chat_history = workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages'] if 'messages' in workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values else []
     # The **IF** is for - when a new chat is created[Thread], for that thread the STATE[messages is still None. When fetched values from STATE, `messages` key doesn't exist. So send [] if empty chat instead of None ]
-    return fetched_messages
+
+    # messages : [human(),ai(),..]
+    # session state messages expect {'role':'_', 'content':'_'}
+    temp_chat_history = []
+    for msg in thread_chat_history:
+        if isinstance(msg, HumanMessage):
+            role = 'user'
+        else:
+            role = 'assistant'
+        temp_chat_history.append({'role':role,'content':msg.content if role == 'user' else msg.content[0]['text']})
+
+    return temp_chat_history
 
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
@@ -51,20 +61,8 @@ st.sidebar.header('My Chats')
 for thread_id in st.session_state['chat_thread_ids'][::-1]:
 
     if st.sidebar.button(label=get_title(thread_id), key=thread_id):
-
         st.session_state['thread_id'] = thread_id
-        thread_chat_history = load_thread_messages(thread_id)
-
-        temp_chat_history = []
-        for msg in thread_chat_history:
-            if isinstance(msg, HumanMessage):
-                role = 'user'
-            else:
-                role = 'assistant'
-            temp_chat_history.append({'role':role,'content':msg.content if role == 'user' else msg.content[0]['text']})
-
-
-        st.session_state['chat_messages'] = temp_chat_history
+        st.session_state['chat_messages'] = load_thread_messages(thread_id=thread_id)
         
 
 # --------------------------- User Interaction ------------------------------------
