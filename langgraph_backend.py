@@ -23,29 +23,30 @@ load_dotenv()
 search_tool = DuckDuckGoSearchRun()
 
 @tool
-def calculator(first_num:float, second_num:float,operator:Literal['add','sub','mul','div'])->dict:
+def calculator(first_num:float, second_num:float,operation:str)->dict:
     """
-    A function to perform math operations - add, subract, multiply, divide
+    perform basic arithemic operations
+    supported operations : add, sub, mul, div
     """
     result = 0.0
-    if operator == 'add':
+    if operation == 'add':
         result = first_num + second_num
-    elif operator == 'sub':
+    elif operation == 'sub':
         result = first_num - second_num
-    elif operator == 'mul':
+    elif operation == 'mul':
         result = first_num * second_num
-    elif operator == 'div':
+    elif operation == 'div':
         if second_num == 0:
             return {'error':'cannot divide with zero'}
         else:
             result = first_num / second_num
     else:
-        return {'error':f'unsupported operation{operator}'}
+        return {'error':f'unsupported operation {operation}'}
 
-    return {'first_num':first_num,'second_num':second_num,'operator':operator,'result':result}
+    return {'first_num':first_num,'second_num':second_num,'operation':operation,'result':result}
 
 
-    
+tools = [calculator, search_tool]
 
 # LLM
 llm_endpoint = HuggingFaceEndpoint(
@@ -56,6 +57,7 @@ model = ChatHuggingFace(llm=llm_endpoint)
 
 google_model = ChatGoogleGenerativeAI(model='gemini-3.1-flash-lite')
 
+google_model_with_tools = google_model.bind_tools(tools=tools)
 
 
 # STATE GRAPH -- WORKFLOW
@@ -66,24 +68,26 @@ class ChatSchema(TypedDict):
 
 def chat_node(state:ChatSchema):
     messages = state['messages']
-    response = google_model.invoke(messages) 
+    response = google_model_with_tools.invoke(messages) 
     # response itself is Ai message, so, when i comeback again, dont need to extract content and send as AImessage
     return {'messages':[response]}
+
 
 conn = sqlite3.connect(database='Akai.db',check_same_thread=False)
 checkpointer = SqliteSaver(conn=conn)
 
 stategraph = StateGraph(state_schema=ChatSchema)
-# nodes
-stategraph.add_node('chat_node',chat_node)
 
-# edges
+
+stategraph.add_node('chat_node',chat_node)
+stategraph.add_node('tools',ToolNode(tools))
+
 stategraph.add_edge(START,'chat_node')
-stategraph.add_edge('chat_node',END)
+stategraph.add_conditional_edges('chat_node',tools_condition)
+stategraph.add_edge('tools','chat_node')
+
 
 workflow = stategraph.compile(checkpointer=checkpointer)
-
-
 
 # UTILITY FUNCS
 def get_all_thread_ids():
