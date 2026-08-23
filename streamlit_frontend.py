@@ -48,7 +48,11 @@ if 'chat_thread_ids' not in st.session_state:
 
 add_thread_id(st.session_state['thread_id'])
 
-CONFIG = {'configurable':{'thread_id':st.session_state['thread_id']}}
+CONFIG = {
+    'configurable':{'thread_id':st.session_state['thread_id']},
+    'metadata': {'thread_id':st.session_state['thread_id']},
+    'run_name' : 'mercury'
+    }
 # ---------------------------- sidebar  -----------------------------------
 
 st.sidebar.title('**ＡＫＡＩ－２.９**',width='content')
