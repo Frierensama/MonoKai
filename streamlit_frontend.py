@@ -22,10 +22,7 @@ def add_thread_id(thread_id):
 
 def load_thread_messages(thread_id):
     thread_chat_history = workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values['messages'] if 'messages' in workflow.get_state(config={'configurable':{'thread_id':thread_id}}).values else []
-    # The **IF** is for - when a new chat is created[Thread], for that thread the STATE[messages is still None. When fetched values from STATE, `messages` key doesn't exist. So send [] if empty chat instead of None ]
 
-    # messages : [human(),ai(),..]
-    # session state messages expect {'role':'_', 'content':'_'}
     temp_chat_history = []
     for msg in thread_chat_history:
         if isinstance(msg, HumanMessage):
@@ -36,6 +33,27 @@ def load_thread_messages(thread_id):
 
     return temp_chat_history
 
+def extract_text(message_chunk):
+
+    content = message_chunk.content
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        text = ""
+
+        for block in content:
+            if isinstance(block, dict):
+                if block.get("type") == "text":
+                    text += block.get("text", "")
+                elif "text" in block:
+                    text += block["text"]
+
+        return text
+
+    return ""
+    
 #----------------------------- session setup  -----------------------------------
 if 'thread_id' not in st.session_state:
     st.session_state['thread_id'] = gen_thread_id()
@@ -86,13 +104,12 @@ if userinput:
     
 
     with st.chat_message('assistant'):
-        response = st.write_stream(
-            message_chunk.content[0]['text'] if message_chunk.content else ""
-            for message_chunk, metadata in workflow.stream(
-                {'messages':[HumanMessage(content=userinput)]},
-                config=CONFIG,
-                stream_mode='messages'
-            )
-        )
-
-    st.session_state['chat_messages'].append({'role':'assistant', 'content':response})
+        
+        def ai_message_only():
+            extract_text(message_chunk)
+            for message_chunk, metadata in workflow.stream({'messages':[HumanMessage(content=userinput)]},config=CONFIG,stream_mode='messages'):
+                if isinstance(message_chunk,AIMessage):
+                    yield message_chunk.content
+    
+        ai_message = st.write_stream(ai_message_only())
+    st.session_state['chat_messages'].append({'role':'assistant', 'content':ai_message})
