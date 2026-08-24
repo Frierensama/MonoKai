@@ -1,2 +1,2 @@
-# Mercury-X
+# Monokai
 
