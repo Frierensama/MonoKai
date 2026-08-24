@@ -1,6 +1,9 @@
 **Akai-2.9**
 
-ordinary project
+```bash
+https://monokai.streamlit.app/
+```
+ordinary [nwt] project
 
 workflow - LangGraph
 observability - LangSmith
