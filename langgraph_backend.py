@@ -1,4 +1,3 @@
-from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain.tools import tool
@@ -8,7 +7,6 @@ from langgraph.graph.state import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
 
@@ -49,14 +47,8 @@ def calculator(first_num:float, second_num:float,operation:str)->dict:
 tools = [calculator, search_tool]
 
 # LLM
-llm_endpoint = HuggingFaceEndpoint(
-    repo_id=os.getenv('hf_model'),
-    provider='together'
-    )
-model = ChatHuggingFace(llm=llm_endpoint)
 
 google_model = ChatGoogleGenerativeAI(model='gemini-3.1-flash-lite')
-
 google_model_with_tools = google_model.bind_tools(tools=tools)
 
 
@@ -69,12 +61,13 @@ class ChatSchema(TypedDict):
 def chat_node(state:ChatSchema):
     messages = state['messages']
     response = google_model_with_tools.invoke(messages) 
-    # response itself is Ai message, so, when i comeback again, dont need to extract content and send as AImessage
+    # response itself is Ai message
     return {'messages':[response]}
 
 
 conn = sqlite3.connect(database='Akai.db',check_same_thread=False)
 checkpointer = SqliteSaver(conn=conn)
+
 
 stategraph = StateGraph(state_schema=ChatSchema)
 
