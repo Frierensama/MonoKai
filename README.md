@@ -5,14 +5,14 @@ https://monokai.streamlit.app/
 ```
 ordinary [nwt] project
 
-workflow - LangGraph
+**workflow** - LangGraph
 observability - LangSmith
 
 done -
 Thread based chat persistence
 streaming
 
-working on -
+**working on -**
 Agents
 yt transcripts
 MCP tools
